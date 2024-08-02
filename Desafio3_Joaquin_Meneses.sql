@@ -1,4 +1,3 @@
--- Active: 1720985866681@@127.0.0.1@5432
 CREATE DATABASE desafio3_Joaquin_Meneses_993;
 CREATE TABLE usuarios (
     id SERIAL PRIMARY KEY,
@@ -28,6 +27,7 @@ CREATE TABLE posts (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
+/* 1 */
 CREATE TABLE comentarios (
     id SERIAL PRIMARY KEY,
     contenido TEXT NOT NULL,
@@ -54,4 +54,112 @@ VALUES
 ('siempre es bueno obtener conclusiones nos ayuda a crecer', 1, 2),
 ('este es un contenido clasico de relleno :(', 2, 2);
 
-select * from comentarios;
+select * from comentarios;  
+/* 2 */
+SELECT 
+u.nombre AS usuario_nombre,
+u.email AS usuario_email,
+p.titulo AS posts_titulo,
+p.contenido AS posts_contenido 
+FROM 
+usuarios u,
+posts p
+WHERE 
+u.id=p.usuario_id
+
+/* 3 */
+SELECT 
+p.id,
+p.titulo,
+p.contenido
+FROM 
+posts p
+WHERE 
+p.usuario_id=1
+
+/* 4 */
+SELECT
+u.id,
+u.email,
+COUNT (p.id) AS count_post
+FROM
+usuarios u
+LEFT JOIN 
+posts p ON u.id=p.usuario_id
+GROUP BY
+u.id,
+u.email 
+ORDER BY 
+count_post desc 
+
+/* 5 */
+SELECT
+email
+FROM (
+SELECT u.email,
+COUNT (p.id) AS count_post
+FROM usuarios u
+LEFT JOIN 
+posts p ON u.id=p.usuario_id
+GROUP BY
+u.email 
+)
+ORDER BY 
+count_post desc limit 1
+
+/* 6 */
+SELECT 
+u.nombre,
+u.email,
+COALESCE(MAX (p.fecha_creacion)::TEXT,'S/Post') AS fecha_uposts
+FROM 
+usuarios u
+LEFT JOIN posts p ON u.id = p.usuario_id
+GROUP BY u.id, u.nombre, u.email
+ORDER BY fecha_uposts asc
+
+/* 7 */
+SELECT
+p.titulo AS titulo_Post,
+p.contenido AS contenido_Post,
+c.count_comments
+FROM posts p
+JOIN (
+    SELECT post_id,
+    COUNT (*) AS count_comments
+    FROM comentarios
+    GROUP BY post_id
+    ORDER BY count_comments desc limit 1)
+    c ON p.id = c.post_id
+
+/* 8 */
+SELECT p.titulo AS titulo_posts,
+       p.contenido AS contenido_posts,
+       c.contenido AS contenido_comentarios,
+       u.email AS email_usuario
+FROM posts p
+LEFT JOIN comentarios c ON p.id = c.post_id
+LEFT JOIN usuarios u ON c.usuario_id = u.id
+WHERE p.titulo IS NOT NULL
+  AND p.contenido IS NOT NULL
+  AND c.contenido IS NOT NULL
+  AND u.email IS NOT NULL
+ORDER BY p.id, c.id;
+
+/* 9 */
+SELECT 
+u.nombre AS usuario_nombre,
+u.email AS usuario_email,
+COALESCE(c.contenido, 'S/Comments') AS comentario,
+COALESCE(MAX (c.fecha_creacion)::TEXT,'S/Data') AS fecha_ucomments
+FROM 
+usuarios u
+LEFT JOIN comentarios c ON u.id = c.usuario_id
+GROUP BY u.id, u.nombre, u.email, c.contenido
+ORDER BY fecha_ucomments asc
+
+/* 10 */
+SELECT u.email
+FROM usuarios u
+LEFT JOIN comentarios c ON u.id = c.usuario_id
+WHERE c.usuario_id IS NULL;
